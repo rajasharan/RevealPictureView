@@ -1,4 +1,4 @@
-package com.rajasharan.revealview.demo;
+package com.rajasharan.widget;
 
 import android.animation.TypeEvaluator;
 import android.util.Log;

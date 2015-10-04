@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.rajasharan.revealview.demo;
+package com.rajasharan.widget;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
@@ -60,8 +60,6 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
     private ValueAnimator mSizeAnimator;
     private Point mViewSize;
 
-    private Paint mPaint;
-
     public RevealPictureView(Context context) {
         this(context, null, 0);
     }
@@ -83,11 +81,6 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
         mAnimationClipPath = new Path();
         mAnimationState = INITIAL_ANIM_STATE;
         mCircle = new CircleEvaluator.Circle();
-
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(5f);
-        mPaint.setColor(Color.RED);
     }
 
     @Override
@@ -125,7 +118,6 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
             mInitialClipPath.addCircle(mInitialSize.x / 2, mInitialSize.y / 2, initialRadius, Path.Direction.CW);
             canvas.clipPath(mInitialClipPath, Region.Op.INTERSECT);
             canvas.drawARGB(128, 128, 128, 128);
-            canvas.drawCircle(mInitialSize.x/2, mInitialSize.y/2, 2, mPaint);
             canvas.restore();
 
             if (mCircleAnimator == null) {
@@ -139,15 +131,12 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
             mAnimationClipPath.addCircle(mCircle.x, mCircle.y, mCircle.radius, Path.Direction.CW);
             canvas.clipPath(mAnimationClipPath, Region.Op.INTERSECT);
             canvas.drawARGB(128, 128, 128, 128);
-            canvas.drawCircle(mCircle.x, mCircle.y, 2, mPaint);
             canvas.restore();
         }
 
         if (mAnimationState == FINAL_ANIM_STATE) {
             canvas.drawARGB(128, 128, 128, 128);
-            canvas.drawCircle(mCircle.x, mCircle.y, 2, mPaint);
         }
-        canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
     }
 
     private void createAnimators() {
