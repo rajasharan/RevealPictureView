@@ -170,6 +170,7 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
                 if (checkTouchInsideView(getLeft() + x, getTop() + y)) {
                     //Log.d(TAG, String.format("onTouchUp: (%s, %s)", x, y));
                     startAnimation();
+                    bringToFront();
                     return true;
                 }
                 break;
