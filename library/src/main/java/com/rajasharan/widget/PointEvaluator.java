@@ -20,7 +20,7 @@ public class PointEvaluator implements TypeEvaluator<Point> {
         int x = (int) (startValue.x + (fraction * (endValue.x - startValue.x)));
         int y = (int) (startValue.y + (fraction * (endValue.y - startValue.y)));
 
-        Log.d(TAG, String.format("Point {%s, %s: %s}", startValue, endValue, fraction));
+        //Log.d(TAG, String.format("Point {%s, %s: %s}", startValue, endValue, fraction));
 
         if (mPoint != null) {
             mPoint.set(x, y);

@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
     <com.rajasharan.widget.RevealPictureView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:background="@mipmap/ic_launcher"
+        app:picture="@drawable/pic1"
         />
 
     <com.rajasharan.widget.RevealPictureView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_centerInParent="true"
-        android:background="@mipmap/ic_launcher"
+        app:picture="@mipmap/ic_launcher"
         />
 
     <com.rajasharan.widget.RevealPictureView
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:background="@mipmap/ic_launcher"
+        android:layout_alignParentBottom="true"
+        app:picture="@drawable/pic2"
         />
 
 </RelativeLayout>

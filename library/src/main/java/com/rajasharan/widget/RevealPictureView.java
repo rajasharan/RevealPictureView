@@ -27,17 +27,22 @@ package com.rajasharan.widget;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 /**
  * Created by rajasharan on 10/4/15.
@@ -59,6 +64,9 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
     private CircleEvaluator.Circle mCircle;
     private ValueAnimator mSizeAnimator;
     private Point mViewSize;
+    private Bitmap mBitmap;
+    private Paint mPaint;
+    private Rect mDstRect;
 
     public RevealPictureView(Context context) {
         this(context, null, 0);
@@ -70,10 +78,14 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
 
     public RevealPictureView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init(context, attrs);
     }
 
-    private void init(Context context) {
+    private void init(Context context, AttributeSet attrs) {
+        Point windowSize = new Point();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getSize(windowSize);
+
         mInitialSize = new Point();
         mFinalSize = new Point();
         mViewSize = new Point();
@@ -81,6 +93,26 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
         mAnimationClipPath = new Path();
         mAnimationState = INITIAL_ANIM_STATE;
         mCircle = new CircleEvaluator.Circle();
+        mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        mDstRect = new Rect();
+
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RevealPictureView);
+        BitmapDrawable picture = (BitmapDrawable) a.getDrawable(R.styleable.RevealPictureView_picture);
+        a.recycle();
+
+        if (picture == null) {
+            throw new UnsupportedOperationException("app:picture attr is mandatory, cannot be skipped");
+        }
+        createScaledBitmap(picture, windowSize);
+    }
+
+    private void createScaledBitmap(BitmapDrawable picture, Point size) {
+        Bitmap b = picture.getBitmap();
+        RectF src = new RectF(0, 0, b.getWidth(), b.getHeight());
+        RectF dst = new RectF(0, 0, size.x/2, size.y/2);
+        Matrix matrix = new Matrix();
+        matrix.setRectToRect(src, dst, Matrix.ScaleToFit.CENTER);
+        mBitmap = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(), matrix, true);
     }
 
     @Override
@@ -93,6 +125,7 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
             setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
 
             mInitialSize.set(w, h);
+            //Log.d(TAG, String.format("onMeasure: (%s, %s)", w, h));
 
             View parent = (View) getParent();
             ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) getLayoutParams();
@@ -114,10 +147,10 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
         if (mAnimationState == INITIAL_ANIM_STATE) {
             canvas.save();
             mInitialClipPath.rewind();
-            int initialRadius = mInitialSize.x < mInitialSize.y ? mInitialSize.x / 2 : mInitialSize.y / 2;
+            int initialRadius = mInitialSize.x > mInitialSize.y ? mInitialSize.x / 2 : mInitialSize.y / 2;
             mInitialClipPath.addCircle(mInitialSize.x / 2, mInitialSize.y / 2, initialRadius, Path.Direction.CW);
             canvas.clipPath(mInitialClipPath, Region.Op.INTERSECT);
-            canvas.drawARGB(128, 128, 128, 128);
+            drawScaledBitmap(canvas, mInitialSize);
             canvas.restore();
 
             if (mCircleAnimator == null) {
@@ -130,17 +163,36 @@ public class RevealPictureView extends View implements ValueAnimator.AnimatorUpd
             mAnimationClipPath.rewind();
             mAnimationClipPath.addCircle(mCircle.x, mCircle.y, mCircle.radius, Path.Direction.CW);
             canvas.clipPath(mAnimationClipPath, Region.Op.INTERSECT);
-            canvas.drawARGB(128, 128, 128, 128);
+            drawScaledBitmap(canvas, mViewSize);
             canvas.restore();
         }
 
         if (mAnimationState == FINAL_ANIM_STATE) {
-            canvas.drawARGB(128, 128, 128, 128);
+            canvas.drawARGB(255, 255, 255, 255);
+            drawScaledBitmap(canvas, mViewSize);
         }
     }
 
+    private void drawScaledBitmap(Canvas canvas, Point size) {
+        float aspectRatio = (mBitmap.getWidth()*1.0f) / (mBitmap.getHeight()*1.0f);
+        if (aspectRatio < 1) {
+            int w = (int) (size.y * aspectRatio);
+            int h = size.y;
+            int disp = (size.x - w)/2;
+            mDstRect.set(disp, 0, w + disp, h);
+        }
+        else {
+            int w = size.x;
+            int h = (int) (size.x / aspectRatio);
+            int disp = (size.y - h) / 2;
+            mDstRect.set(0, disp, w, h + disp);
+        }
+        canvas.drawARGB(70, 128, 128, 128);
+        canvas.drawBitmap(mBitmap, null, mDstRect, mPaint);
+    }
+
     private void createAnimators() {
-        int initialRadius = mInitialSize.x < mInitialSize.y ? mInitialSize.x / 2 : mInitialSize.y / 2;
+        int initialRadius = mInitialSize.x > mInitialSize.y ? mInitialSize.x / 2 : mInitialSize.y / 2;
 
         CircleEvaluator.Circle initialCircle = new CircleEvaluator.Circle();
         initialCircle.set(mInitialSize.x / 2, mInitialSize.y / 2, initialRadius);
